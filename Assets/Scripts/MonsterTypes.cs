@@ -85,6 +85,32 @@ public static class MonsterTypes
 
         return 0;
     }
+
+    public static Color GetTypeColour(MonsterType Type)
+    {
+        switch (Type)
+        {
+            case MonsterType.Slime:
+                return new Color32(175,255,191,255);
+
+            case MonsterType.Beast:
+                return new Color32(224, 79, 63, 255);
+
+            case MonsterType.Occult:
+                return new Color32(33, 33, 33, 255);
+
+            case MonsterType.Space:
+                return new Color32(188, 210, 234, 255);
+
+            case MonsterType.Enchanted:
+                return new Color32(255, 188, 254, 255);
+
+            default:
+                return Color.white;
+        }
+
+
+    }
 }
 
 public enum MonsterType
