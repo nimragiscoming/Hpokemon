@@ -1,46 +1,155 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 
 public class BattleManager : MonoBehaviour
 {
-    bool IsPlayerTurn = true;
+    BattleState State;
 
     int TurnNumber;
 
-    public PlayerCollection PlayerCollection;
+    public Player Player;
 
-    public void Startbattle()
+    public TMP_Text DialogueBox;
+
+    public MGBase type;
+
+    MonsterGirl CurPlayerMG;
+
+    MonsterGirl CurEnemyMG;
+
+    public CombatMoveButton CombatMoveButton;
+
+    public GameObject CombatMoveButtonGroup;
+
+    private void Start()
     {
+        MonsterGirl mg = new MonsterGirl();
+        mg.Monster = type;
+
+        Startbattle(mg);
+    }
+
+    public void Startbattle(MonsterGirl enemy)
+    {
+        State = BattleState.Start;
         TurnNumber = 0;
 
-        foreach (MonsterGirl girl in PlayerCollection.Girls)
+        foreach (MonsterGirl girl in Player.Girls)
         {
             girl.ResetStats();
         }
+        DialogueBox.text = "A " + enemy.Monster.MonsterName + " appears!";
+
+        CurEnemyMG = enemy;
+
+        CurPlayerMG = Player.Girls[0];
+
+        StartPlayerTurn();
+        //TODO: Initialise combat, make buttons etc
     }
 
-    void PlayerTurn()
+    public void StartPlayerTurn()
     {
-        IsPlayerTurn= true;
+        TurnNumber++;
 
-        //wait for input - use coroutine
+        foreach (CombatMove move in CurPlayerMG.Monster.Moveset)
+        {
+            CombatMoveButton Mv = Instantiate(CombatMoveButton, CombatMoveButtonGroup.transform);
+            Mv.BattleManager= this;
+            Mv.Move= move;
+        }
 
-        //do attack
-
-        IsPlayerTurn= false;
+        State = BattleState.PlayerTurn;
     }
 
-    void EnemyTurn()
+    public void EndPlayerTurn()
     {
-        // for now just randomly choose a move
 
-        // change monstergirl when she gets to 20% health
+        State = BattleState.EnemyTurn;
 
-        //in future calculate damage of moves, pick randomly from top few highest damaging
+        StartCoroutine(EnemyTurn());
     }
 
-    int GetDamage(MonsterGirl Source, MonsterGirl Target, CombatMove Move)
+    public IEnumerator DoPlayerTurn(CombatMove Move)
+    {
+        if(State != BattleState.PlayerTurn) { yield break; }
+
+        foreach (Transform child in CombatMoveButtonGroup.transform)
+        {
+            Destroy(child.gameObject);
+        }
+
+        //do damage with chosen move
+        int Damage = GetDamage(CurPlayerMG, CurEnemyMG, Move);
+
+        DoDamage(CurEnemyMG, Damage);
+
+        DialogueBox.text = "Using " + Move.MoveName + "...";
+
+        //wait a few second before showing damage text, and going to the enemy turn
+        yield return new WaitForSeconds(2f);
+
+        DialogueBox.text = "You hit for " + Damage + " damage!";
+
+        yield return new WaitForSeconds(2f);
+
+        EndPlayerTurn();
+    }
+
+    IEnumerator EnemyTurn()
+    {
+        //TODO: change monstergirl when she gets to 20% health
+
+        //Selects random move out of three best
+
+        int selectLength = Mathf.Min(3, CurEnemyMG.Monster.Moveset.Count);
+
+
+        CombatMove[] moves = new CombatMove[selectLength];
+
+        int[] movePower = new int[selectLength];
+
+        //iterate over all moves and pick best three
+        foreach (CombatMove move in CurEnemyMG.Monster.Moveset)
+        {
+            int power = CalcBaseDamage(CurEnemyMG,CurPlayerMG, move);
+
+            for (int i = 0; i < selectLength; i++)
+            {
+                if (movePower[i] < power)
+                {
+                    moves[i] = move;
+                    movePower[i] = power;
+                    break;
+                }
+            }
+        }
+
+        //randomly select one
+        int rand = Random.Range(0, selectLength);
+
+        CombatMove finalMove = moves[rand];
+
+
+        //actually do the damage
+        int Damage = GetDamage(CurEnemyMG,CurPlayerMG, finalMove);
+        DoDamage(CurPlayerMG, Damage);
+
+        DialogueBox.text = "The " + CurEnemyMG.Monster.MonsterName + " is using " + finalMove.MoveName + "...";
+
+        yield return new WaitForSeconds(2f);
+
+        DialogueBox.text = "The "+ CurEnemyMG.Monster.MonsterName + " hit for " + Damage + " damage!";
+
+        yield return new WaitForSeconds(2f);
+
+        //end turn
+        StartPlayerTurn();
+    }
+
+    int CalcBaseDamage(MonsterGirl Source, MonsterGirl Target, CombatMove Move)
     {
         int AtkDfs;
         if (Move.IsMagic)
@@ -52,15 +161,11 @@ public class BattleManager : MonoBehaviour
             AtkDfs = Source.Monster.Attack / Target.Monster.Defense;
         }
 
-        int Crit = Random.Range(0, 100) < Source.Monster.Precision ? 2 : 1;
-
-        float RandomMod = Random.Range(0.9f, 1);
-
         float STAB = Source.Monster.Type == Move.Type ? 1.5f : 1;
 
         float TE = MonsterTypes.GetTypeBonus(Source.Monster.Type, Move.Type);
 
-        if(TE < 0)
+        if (TE < 0)
         {
             TE = 0.5f;
         }
@@ -69,7 +174,29 @@ public class BattleManager : MonoBehaviour
             TE += 1;
         }
 
-        return (int)(Move.Power * AtkDfs * Crit * RandomMod * STAB * TE);
+        return (int)(Move.Power * AtkDfs * STAB * TE);
+    }
+
+    int GetDamage(MonsterGirl Source, MonsterGirl Target, CombatMove Move)
+    {
+        int BaseDamage = CalcBaseDamage(Source, Target, Move);
+
+        int Crit = Random.Range(0, 100) < Source.Monster.Precision ? 2 : 1;
+
+        float RandomMod = Random.Range(0.9f, 1);
+
+        return (int)(BaseDamage * Crit * RandomMod);
+    }
+
+    public void DoDamage(MonsterGirl Target, int Damage)
+    {
+        Target.Health -= Damage;
+
+        if(Target.Health < 0)
+        {
+            // do checks for changing monster/ win or lose
+        }
+
     }
 
     float GetStatStageMultiplier(int stage)
@@ -98,4 +225,13 @@ public class BattleManager : MonoBehaviour
 
         }
     }
+}
+
+enum BattleState
+{
+    Start,
+    PlayerTurn,
+    EnemyTurn,
+    Win,
+    Lose
 }

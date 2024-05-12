@@ -2,8 +2,11 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+[CreateAssetMenu(fileName = "New Monster Girl", menuName = "Monsters/New Monster Girl")]
 public class MGBase : ScriptableObject
 {
+    public string MonsterName;
+
     public int BaseHealth;
 
     public int BaseEnergy;
@@ -21,4 +24,6 @@ public class MGBase : ScriptableObject
     public int Precision;
 
     public MonsterType Type;
+
+    public List<CombatMove> Moveset;
 }

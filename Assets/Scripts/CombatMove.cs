@@ -2,8 +2,11 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class CombatMove
+[CreateAssetMenu(fileName = "New Combat Move", menuName = "Monsters/New Combat Move")]
+public class CombatMove : ScriptableObject
 {
+    public string MoveName;
+
     public int Power;
 
     public bool IsMagic = false;

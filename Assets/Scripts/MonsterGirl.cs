@@ -1,8 +1,10 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class MonsterGirl : MonoBehaviour
+[Serializable]
+public class MonsterGirl
 {
     public MGBase Monster;
 

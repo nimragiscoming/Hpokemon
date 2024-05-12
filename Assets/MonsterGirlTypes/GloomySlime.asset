@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7216629c0249bbb44809288f2764a72a, type: 3}
+  m_Name: GloomySlime
+  m_EditorClassIdentifier: 
+  MonsterName: Gloomy Slime
+  BaseHealth: 100
+  BaseEnergy: 100
+  Attack: 30
+  Defense: 15
+  MagicAttack: 60
+  MagicDefense: 30
+  Speed: 10
+  Precision: 2
+  Type: 0
+  Moveset:
+  - {fileID: 11400000, guid: d667012e3c4da40428614f1b6079ba53, type: 2}
