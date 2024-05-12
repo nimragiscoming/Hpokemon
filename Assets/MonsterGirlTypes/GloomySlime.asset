@@ -20,7 +20,7 @@ MonoBehaviour:
   MagicAttack: 60
   MagicDefense: 30
   Speed: 10
-  Precision: 2
+  Precision: 5
   Type: 0
   Moveset:
   - {fileID: 11400000, guid: d667012e3c4da40428614f1b6079ba53, type: 2}

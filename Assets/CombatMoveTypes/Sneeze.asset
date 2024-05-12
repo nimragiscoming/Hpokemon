@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d8df872baafd77c4580e0194c5840f83, type: 3}
   m_Name: Sneeze
   m_EditorClassIdentifier: 
-  MoveName: 5
+  MoveName: Sneeze
   Power: 15
   IsMagic: 0
   Type: 4

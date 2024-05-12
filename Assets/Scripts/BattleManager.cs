@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using TMPro;
 using UnityEngine;
@@ -8,7 +9,7 @@ public class BattleManager : MonoBehaviour
 {
     BattleState State;
 
-    int TurnNumber;
+    public int TurnNumber;
 
     public Player Player;
 
@@ -23,6 +24,12 @@ public class BattleManager : MonoBehaviour
     public CombatMoveButton CombatMoveButton;
 
     public GameObject CombatMoveButtonGroup;
+
+
+
+    public StatDisplayPanel PlayerStats;
+
+    public StatDisplayPanel EnemyStats;
 
     private void Start()
     {
@@ -41,14 +48,30 @@ public class BattleManager : MonoBehaviour
         {
             girl.ResetStats();
         }
+
+        enemy.ResetStats();
+
+
         DialogueBox.text = "A " + enemy.Monster.MonsterName + " appears!";
 
         CurEnemyMG = enemy;
 
+        EnemyStats.Girl = CurEnemyMG;
+
         CurPlayerMG = Player.Girls[0];
+
+        PlayerStats.Girl = CurPlayerMG;
+
+        UpdateStats();
 
         StartPlayerTurn();
         //TODO: Initialise combat, make buttons etc
+    }
+
+    void UpdateStats()
+    {
+        PlayerStats.UpdateText();
+        EnemyStats.UpdateText();
     }
 
     public void StartPlayerTurn()
@@ -82,19 +105,30 @@ public class BattleManager : MonoBehaviour
             Destroy(child.gameObject);
         }
 
-        //do damage with chosen move
-        int Damage = GetDamage(CurPlayerMG, CurEnemyMG, Move);
 
-        DoDamage(CurEnemyMG, Damage);
+
+        //do damage with chosen move
+        bool isCrit;
+        int Damage = GetDamage(CurPlayerMG, CurEnemyMG, Move, out isCrit);
 
         DialogueBox.text = "Using " + Move.MoveName + "...";
 
         //wait a few second before showing damage text, and going to the enemy turn
-        yield return new WaitForSeconds(2f);
+        yield return new WaitForSeconds(1f);
 
-        DialogueBox.text = "You hit for " + Damage + " damage!";
+        DoDamage(CurEnemyMG, Damage);
 
-        yield return new WaitForSeconds(2f);
+        UpdateStats();
+
+        string text1 = string.Empty;
+        if(isCrit)
+        {
+            text1 += "Critical Hit! ";
+        }
+        text1 += "You hit for " + Damage + " damage!";
+        DialogueBox.text = text1;
+
+        yield return new WaitForSeconds(1f);
 
         EndPlayerTurn();
     }
@@ -117,16 +151,28 @@ public class BattleManager : MonoBehaviour
 
 
         //actually do the damage
-        int Damage = GetDamage(CurEnemyMG,CurPlayerMG, finalMove);
-        DoDamage(CurPlayerMG, Damage);
+
+        bool isCrit;
+        int Damage = GetDamage(CurEnemyMG,CurPlayerMG, finalMove, out isCrit);
+
 
         DialogueBox.text = "The " + CurEnemyMG.Monster.MonsterName + " is using " + finalMove.MoveName + "...";
 
-        yield return new WaitForSeconds(2f);
+        yield return new WaitForSeconds(1f);
 
-        DialogueBox.text = "The "+ CurEnemyMG.Monster.MonsterName + " hit for " + Damage + " damage!";
+        DoDamage(CurPlayerMG, Damage);
 
-        yield return new WaitForSeconds(2f);
+        UpdateStats();
+
+        string text1 = string.Empty;
+        if (isCrit)
+        {
+            text1 += "Critical Hit! ";
+        }
+        text1 += "The "+ CurEnemyMG.Monster.MonsterName + " hit for " + Damage + " damage!";
+        DialogueBox.text = text1;
+
+        yield return new WaitForSeconds(1f);
 
         //end turn
         StartPlayerTurn();
@@ -160,11 +206,22 @@ public class BattleManager : MonoBehaviour
         return (int)(Move.Power * AtkDfs * STAB * TE);
     }
 
-    int GetDamage(MonsterGirl Source, MonsterGirl Target, CombatMove Move)
+    int GetDamage(MonsterGirl Source, MonsterGirl Target, CombatMove Move, out bool isCrit)
     {
         int BaseDamage = CalcBaseDamage(Source, Target, Move);
 
-        int Crit = Random.Range(0, 100) < Source.Monster.Precision ? 2 : 1;
+
+        int Crit =  1;
+
+        if(Random.Range(0, 100) < Source.Monster.Precision)
+        {
+            Crit = 2;
+            isCrit= true;
+        }
+        else
+        {
+            isCrit= false;
+        }
 
         float RandomMod = Random.Range(0.9f, 1);
 
