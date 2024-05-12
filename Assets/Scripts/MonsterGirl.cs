@@ -27,6 +27,8 @@ public class MonsterGirl
 
     public int SpdStage;
 
+    public MonsterModel Model;
+
     public void ResetStats()
     {
         Health = BaseHealth;

@@ -10,20 +10,18 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7216629c0249bbb44809288f2764a72a, type: 3}
-  m_Name: GloomySlime
+  m_Name: Default Cubis
   m_EditorClassIdentifier: 
-  MonsterName: Gloomy Slime
-  BaseHealth: 500
+  MonsterName: Default Cubis
+  BaseHealth: 600
   BaseEnergy: 100
-  Attack: 30
-  Defense: 15
-  MagicAttack: 60
-  MagicDefense: 30
-  Speed: 10
+  Attack: 25
+  Defense: 25
+  MagicAttack: 25
+  MagicDefense: 25
+  Speed: 25
   Precision: 5
-  Type: 0
+  Type: 2
   Moveset:
-  - {fileID: 11400000, guid: d667012e3c4da40428614f1b6079ba53, type: 2}
   - {fileID: 11400000, guid: bffbc47fdcb79a349b1955b4b9b22dc9, type: 2}
-  - {fileID: 11400000, guid: 1d7c16846af04c0419aa67e373f56539, type: 2}
   Model: {fileID: 6794113042294689538, guid: 5a4df50269ef5354696a75aab466b3ff, type: 3}

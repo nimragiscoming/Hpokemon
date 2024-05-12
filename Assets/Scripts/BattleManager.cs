@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Linq.Expressions;
 using TMPro;
 using UnityEngine;
 
@@ -25,7 +26,9 @@ public class BattleManager : MonoBehaviour
 
     public GameObject CombatMoveButtonGroup;
 
+    public Camera WideCam;
 
+    Camera curCam;
 
     public StatDisplayPanel PlayerStats;
 
@@ -43,6 +46,7 @@ public class BattleManager : MonoBehaviour
     {
         State = BattleState.Start;
         TurnNumber = 0;
+        curCam = WideCam;
 
         foreach (MonsterGirl girl in Player.Girls)
         {
@@ -52,7 +56,7 @@ public class BattleManager : MonoBehaviour
         enemy.ResetStats();
 
 
-        DialogueBox.text = "A " + enemy.Monster.MonsterName + " appears!";
+        SetDialogue("A " + enemy.Monster.MonsterName + " appears!");
 
         CurEnemyMG = enemy;
 
@@ -61,6 +65,8 @@ public class BattleManager : MonoBehaviour
         CurPlayerMG = Player.Girls[0];
 
         PlayerStats.Girl = CurPlayerMG;
+
+        CreateModels();
 
         UpdateStats();
 
@@ -72,6 +78,13 @@ public class BattleManager : MonoBehaviour
     {
         PlayerStats.UpdateText();
         EnemyStats.UpdateText();
+    }
+
+    void SwitchCam(Camera cam)
+    {
+        cam.enabled = true;
+        curCam.enabled = false;
+        curCam = cam;
     }
 
     public void StartPlayerTurn()
@@ -105,13 +118,15 @@ public class BattleManager : MonoBehaviour
             Destroy(child.gameObject);
         }
 
+        SwitchCam(CurPlayerMG.Model.frontCam);
+
 
 
         //do damage with chosen move
         bool isCrit;
-        int Damage = GetDamage(CurPlayerMG, CurEnemyMG, Move, out isCrit);
+        int Damage = CombatHelper.GetDamage(CurPlayerMG, CurEnemyMG, Move, out isCrit);
 
-        DialogueBox.text = "Using " + Move.MoveName + "...";
+        SetDialogue("Using " + Move.MoveName + "...");
 
         //wait a few second before showing damage text, and going to the enemy turn
         yield return new WaitForSeconds(1f);
@@ -126,9 +141,15 @@ public class BattleManager : MonoBehaviour
             text1 += "Critical Hit! ";
         }
         text1 += "You hit for " + Damage + " damage!";
-        DialogueBox.text = text1;
+        SetDialogue(text1);
 
         yield return new WaitForSeconds(1f);
+
+
+
+        SwitchCam(WideCam);
+
+
 
         if (win)
         {
@@ -139,28 +160,26 @@ public class BattleManager : MonoBehaviour
         EndPlayerTurn();
     }
 
-    void PlayerWin()
-    {
-        State = BattleState.Win;
-        DialogueBox.text = "You have defeated the " + CurEnemyMG.Monster.MonsterName + ".";
-    }
-
-    void PlayerLose()
-    {
-        State = BattleState.Lose;
-        DialogueBox.text = "You have been defeated by the " + CurEnemyMG.Monster.MonsterName + ".";
-    }
-
     IEnumerator EnemyTurn()
     {
+        SetDialogue("The " + CurEnemyMG.Monster.MonsterName + " is preparing to attack... ");
+        yield return new WaitForSeconds(1f);
+
+        SwitchCam(CurEnemyMG.Model.frontCam);
+
+
+
         //TODO: change monstergirl when she gets to 20% health
+
+
+
 
         //Selects random move out of X best
 
         int selectLength = Mathf.Min(2, CurEnemyMG.Monster.Moveset.Count);
 
         //Sort list by base damage
-        List<CombatMove> moves = CurEnemyMG.Monster.Moveset.OrderByDescending(o => CalcBaseDamage(CurEnemyMG, CurPlayerMG, o)).ToList();
+        List<CombatMove> moves = CurEnemyMG.Monster.Moveset.OrderByDescending(o => CombatHelper.CalcBaseDamage(CurEnemyMG, CurPlayerMG, o)).ToList();
 
         //randomly select one based on select length
         int rand = Random.Range(0, selectLength);
@@ -168,13 +187,13 @@ public class BattleManager : MonoBehaviour
         CombatMove finalMove = moves[rand];
 
 
+
         //actually do the damage
 
         bool isCrit;
-        int Damage = GetDamage(CurEnemyMG,CurPlayerMG, finalMove, out isCrit);
+        int Damage = CombatHelper.GetDamage(CurEnemyMG,CurPlayerMG, finalMove, out isCrit);
 
-
-        DialogueBox.text = "The " + CurEnemyMG.Monster.MonsterName + " is using " + finalMove.MoveName + "...";
+        SetDialogue("The " + CurEnemyMG.Monster.MonsterName + " is using " + finalMove.MoveName + "...");
 
         yield return new WaitForSeconds(1f);
 
@@ -188,11 +207,19 @@ public class BattleManager : MonoBehaviour
             text1 += "Critical Hit! ";
         }
         text1 += "The "+ CurEnemyMG.Monster.MonsterName + " hit for " + Damage + " damage!";
-        DialogueBox.text = text1;
+
+        SetDialogue(text1);
 
         yield return new WaitForSeconds(1f);
 
-        if(win)
+
+
+
+        SwitchCam(WideCam);
+
+
+
+        if (win)
         {
             PlayerLose();
             yield break;
@@ -202,54 +229,21 @@ public class BattleManager : MonoBehaviour
         StartPlayerTurn();
     }
 
-    int CalcBaseDamage(MonsterGirl Source, MonsterGirl Target, CombatMove Move)
+    public void SetDialogue(string text)
     {
-        int AtkDfs;
-        if (Move.IsMagic)
+        StartCoroutine(TypewriterEffect());
+        IEnumerator TypewriterEffect()
         {
-            AtkDfs = Source.Monster.MagicAttack / Target.Monster.MagicDefense;
+            DialogueBox.text = string.Empty;
+            float TypeTime = 0.4f;
+
+            float interval = TypeTime/text.Length;
+            foreach (char ch in text)
+            {
+                DialogueBox.text += ch;
+                yield return new WaitForSeconds(interval);
+            }
         }
-        else
-        {
-            AtkDfs = Source.Monster.Attack / Target.Monster.Defense;
-        }
-
-        float STAB = Source.Monster.Type == Move.Type ? 1.5f : 1;
-
-        float TE = MonsterTypes.GetTypeBonus(Move.Type,Target.Monster.Type);
-
-        if (TE < 0)
-        {
-            TE = 0.5f;
-        }
-        else
-        {
-            TE += 1;
-        }
-
-        return (int)(Move.Power * AtkDfs * STAB * TE);
-    }
-
-    int GetDamage(MonsterGirl Source, MonsterGirl Target, CombatMove Move, out bool isCrit)
-    {
-        int BaseDamage = CalcBaseDamage(Source, Target, Move);
-
-
-        int Crit =  1;
-
-        if(Random.Range(0, 100) < Source.Monster.Precision)
-        {
-            Crit = 2;
-            isCrit= true;
-        }
-        else
-        {
-            isCrit= false;
-        }
-
-        float RandomMod = Random.Range(0.9f, 1);
-
-        return (int)(BaseDamage * Crit * RandomMod);
     }
 
     //returns true if monster died, false if not
@@ -268,31 +262,30 @@ public class BattleManager : MonoBehaviour
 
     }
 
-    float GetStatStageMultiplier(int stage)
+    void PlayerWin()
     {
-        switch(stage)
-        {
-            case -3:
-                return 0.25f;
-            case -2:
-                return 0.50f;
-            case -1:
-                return 0.75f;
-            case 0:
-                return 1f;
-            case 1:
-                return 1.25f;
-            case 2:
-                return 1.50f;
-            case 3:
-                return 1.75f;
-            case 4:
-                return 2f;
-            default:
-                Debug.Log("Unexpected Stage Multiplier found, value was: "+ stage);
-                return 1f;
+        State = BattleState.Win;
+        SetDialogue("You have defeated the " + CurEnemyMG.Monster.MonsterName + ".");
+    }
 
-        }
+    void PlayerLose()
+    {
+        State = BattleState.Lose;
+        SetDialogue("You have been defeated by the " + CurEnemyMG.Monster.MonsterName + ".");
+    }
+
+
+    void CreateModels()
+    {
+        float dist = 20;
+
+        Vector3 PlayerPos = transform.position + new Vector3(-dist/2, 0);
+
+        Vector3 EnemyPos = transform.position + new Vector3(dist / 2, 0);
+
+        CurPlayerMG.Model = Instantiate(CurPlayerMG.Monster.Model, PlayerPos, Quaternion.identity);
+
+        CurEnemyMG.Model = Instantiate(CurEnemyMG.Monster.Model, EnemyPos, Quaternion.identity);
     }
 }
 

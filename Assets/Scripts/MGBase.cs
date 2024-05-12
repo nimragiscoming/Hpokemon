@@ -26,4 +26,6 @@ public class MGBase : ScriptableObject
     public MonsterType Type;
 
     public List<CombatMove> Moveset;
+
+    public MonsterModel Model;
 }
