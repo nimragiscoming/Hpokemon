@@ -9,6 +9,8 @@ public class CombatMove : ScriptableObject
 
     public int Power;
 
+    public int Cost;
+
     public bool IsMagic = false;
 
     public MonsterType Type;
