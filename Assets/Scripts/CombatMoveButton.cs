@@ -10,11 +10,15 @@ public class CombatMoveButton : MonoBehaviour
 
     public CombatMove Move;
 
-    public TMP_Text text;
+    public TMP_Text NameText;
+    public TMP_Text PowerText;
+    public TMP_Text TypeText;
 
     private void Start()
     {
-        text.text = Move.MoveName;
+        NameText.text = Move.MoveName;
+        PowerText.text = Move.Power.ToString() + "DP";
+        TypeText.text = Move.Type.ToString();
     }
 
     public void OnPressed()

@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: GloomySlime
   m_EditorClassIdentifier: 
   MonsterName: Gloomy Slime
-  BaseHealth: 100
+  BaseHealth: 500
   BaseEnergy: 100
   Attack: 30
   Defense: 15

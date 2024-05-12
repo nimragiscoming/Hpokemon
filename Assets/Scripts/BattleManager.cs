@@ -116,7 +116,7 @@ public class BattleManager : MonoBehaviour
         //wait a few second before showing damage text, and going to the enemy turn
         yield return new WaitForSeconds(1f);
 
-        DoDamage(CurEnemyMG, Damage);
+        bool win = DoDamage(CurEnemyMG, Damage);
 
         UpdateStats();
 
@@ -130,7 +130,25 @@ public class BattleManager : MonoBehaviour
 
         yield return new WaitForSeconds(1f);
 
+        if (win)
+        {
+            PlayerWin();
+            yield break;
+        }
+
         EndPlayerTurn();
+    }
+
+    void PlayerWin()
+    {
+        State = BattleState.Win;
+        DialogueBox.text = "You have defeated the " + CurEnemyMG.Monster.MonsterName + ".";
+    }
+
+    void PlayerLose()
+    {
+        State = BattleState.Lose;
+        DialogueBox.text = "You have been defeated by the " + CurEnemyMG.Monster.MonsterName + ".";
     }
 
     IEnumerator EnemyTurn()
@@ -160,7 +178,7 @@ public class BattleManager : MonoBehaviour
 
         yield return new WaitForSeconds(1f);
 
-        DoDamage(CurPlayerMG, Damage);
+        bool win = DoDamage(CurPlayerMG, Damage);
 
         UpdateStats();
 
@@ -173,6 +191,12 @@ public class BattleManager : MonoBehaviour
         DialogueBox.text = text1;
 
         yield return new WaitForSeconds(1f);
+
+        if(win)
+        {
+            PlayerLose();
+            yield break;
+        }
 
         //end turn
         StartPlayerTurn();
@@ -228,13 +252,18 @@ public class BattleManager : MonoBehaviour
         return (int)(BaseDamage * Crit * RandomMod);
     }
 
-    public void DoDamage(MonsterGirl Target, int Damage)
+    //returns true if monster died, false if not
+    public bool DoDamage(MonsterGirl Target, int Damage)
     {
         Target.Health -= Damage;
 
         if(Target.Health < 0)
         {
-            // do checks for changing monster/ win or lose
+            return true;
+        }
+        else
+        {
+            return false;
         }
 
     }
