@@ -216,7 +216,7 @@ public class BattleManager : MonoBehaviour
 
         float STAB = Source.Monster.Type == Move.Type ? 1.5f : 1;
 
-        float TE = MonsterTypes.GetTypeBonus(Source.Monster.Type, Move.Type);
+        float TE = MonsterTypes.GetTypeBonus(Move.Type,Target.Monster.Type);
 
         if (TE < 0)
         {
