@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using TMPro;
 using UnityEngine;
 
@@ -102,32 +103,14 @@ public class BattleManager : MonoBehaviour
     {
         //TODO: change monstergirl when she gets to 20% health
 
-        //Selects random move out of three best
+        //Selects random move out of X best
 
-        int selectLength = Mathf.Min(3, CurEnemyMG.Monster.Moveset.Count);
+        int selectLength = Mathf.Min(2, CurEnemyMG.Monster.Moveset.Count);
 
+        //Sort list by base damage
+        List<CombatMove> moves = CurEnemyMG.Monster.Moveset.OrderByDescending(o => CalcBaseDamage(CurEnemyMG, CurPlayerMG, o)).ToList();
 
-        CombatMove[] moves = new CombatMove[selectLength];
-
-        int[] movePower = new int[selectLength];
-
-        //iterate over all moves and pick best three
-        foreach (CombatMove move in CurEnemyMG.Monster.Moveset)
-        {
-            int power = CalcBaseDamage(CurEnemyMG,CurPlayerMG, move);
-
-            for (int i = 0; i < selectLength; i++)
-            {
-                if (movePower[i] < power)
-                {
-                    moves[i] = move;
-                    movePower[i] = power;
-                    break;
-                }
-            }
-        }
-
-        //randomly select one
+        //randomly select one based on select length
         int rand = Random.Range(0, selectLength);
 
         CombatMove finalMove = moves[rand];
