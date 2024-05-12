@@ -75,7 +75,7 @@ public static class MonsterTypes
                 return -1;
             }
 
-            if (T2 == MonsterType.Slime|| T2 == MonsterType.Space)
+            if (T2 == MonsterType.Slime || T2 == MonsterType.Space)
             {
                 return 1;
             }

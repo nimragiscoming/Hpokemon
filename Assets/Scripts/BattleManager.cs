@@ -71,4 +71,31 @@ public class BattleManager : MonoBehaviour
 
         return (int)(Move.Power * AtkDfs * Crit * RandomMod * STAB * TE);
     }
+
+    float GetStatStageMultiplier(int stage)
+    {
+        switch(stage)
+        {
+            case -3:
+                return 0.25f;
+            case -2:
+                return 0.50f;
+            case -1:
+                return 0.75f;
+            case 0:
+                return 1f;
+            case 1:
+                return 1.25f;
+            case 2:
+                return 1.50f;
+            case 3:
+                return 1.75f;
+            case 4:
+                return 2f;
+            default:
+                Debug.Log("Unexpected Stage Multiplier found, value was: "+ stage);
+                return 1f;
+
+        }
+    }
 }

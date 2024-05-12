@@ -14,11 +14,28 @@ public class MonsterGirl : MonoBehaviour
 
     public int Energy;
 
+
+    public int AtkStage;
+
+    public int DfsStage;
+
+    public int MAtkStage;
+
+    public int MDfsStage;
+
+    public int SpdStage;
+
     public void ResetStats()
     {
         Health = BaseHealth;
 
         Energy = BaseEnergy;
+
+        AtkStage = 0;
+        DfsStage = 0;
+        MAtkStage = 0;
+        MDfsStage = 0;
+        SpdStage = 0;
     }
 
 }
