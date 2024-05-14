@@ -9,70 +9,51 @@ public static class CombatHelper
 {
     public static int CalcBaseDamage(MonsterGirl Source, MonsterGirl Target, CombatMove Move)
     {
-        float AtkDfs;
+        float attackDefenseRatio;
+
         if (Move.MoveType == MoveType.Magical)
         {
 
-            AtkDfs = (Source.Monster.MagicAttack * GetStatEffectMultiplier(Source,Stat.MagicAttack) * GetStatStageMultiplier(Source.MAtkStage)) / (Target.Monster.MagicDefense * GetStatEffectMultiplier(Target, Stat.MagicDefense) * GetStatStageMultiplier(Target.MDfsStage));
+            attackDefenseRatio = (Source.Monster.MagicAttack * GetStatEffectMultiplier(Source,Stat.MagicAttack) * GetStatStageMultiplier(Source.MAtkStage)) / (Target.Monster.MagicDefense * GetStatEffectMultiplier(Target, Stat.MagicDefense) * GetStatStageMultiplier(Target.MDfsStage));
         }
         else
         {
-            AtkDfs = (Source.Monster.Attack * GetStatEffectMultiplier(Source, Stat.Attack) * GetStatStageMultiplier(Source.AtkStage)) / (Target.Monster.Defense * GetStatEffectMultiplier(Target, Stat.Defense) * GetStatStageMultiplier(Target.DfsStage));
+            attackDefenseRatio = (Source.Monster.Attack * GetStatEffectMultiplier(Source, Stat.Attack) * GetStatStageMultiplier(Source.AtkStage)) / (Target.Monster.Defense * GetStatEffectMultiplier(Target, Stat.Defense) * GetStatStageMultiplier(Target.DfsStage));
         }
 
         float STAB = Source.Monster.Type == Move.Type ? 1.5f : 1;
 
-        float TE = MonsterTypes.GetTypeBonus(Move.Type, Target.Monster.Type);
+        float typeEffectiveness = MonsterTypes.GetTypeEffect(Move.Type, Target.Monster.Type);
 
-        if (TE < 0)
+        return (int)(Move.Power * attackDefenseRatio * STAB * typeEffectiveness);
+    }
+
+    public static bool CheckCrit(MonsterGirl Source)
+    {
+        foreach (StatusEffect effect in Source.StatusEffects)
         {
-            TE = 0.5f;
+            if(effect.action == StatusAction.NoCrits)
+            {
+                return false;
+            }
         }
-        else
+        
+        if (UnityEngine.Random.Range(0, 100) < Source.Monster.Precision)
         {
-            TE += 1;
+            return true;
         }
 
-        return (int)(Move.Power * AtkDfs * STAB * TE);
+        return false;
+
     }
 
     public static int GetDamage(MonsterGirl Source, MonsterGirl Target, CombatMove Move, out bool isCrit)
     {
+        isCrit = CheckCrit(Source);
+
         int BaseDamage = CalcBaseDamage(Source, Target, Move);
-
-
-        int Crit = 1;
-
-        if (UnityEngine.Random.Range(0, 100) < Source.Monster.Precision)
-        {
-
-            //hacky way of disabling crits altogether for certain status effects
-            bool flag = false;
-            foreach (StatusEffect effect in Source.StatusEffects)
-            {
-                if(effect.action == StatusAction.NoCrits)
-                {
-                    flag= true;
-                    break;
-                }
-            }
-
-            if(!flag)
-            {
-                Crit = 2;
-                isCrit = true;
-            }
-            else
-            {
-                isCrit = false;
-            }
-        }
-        else
-        {
-            isCrit = false;
-        }
-
         float RandomMod = UnityEngine.Random.Range(0.9f, 1);
+        int Crit = isCrit ? 2 : 1;
 
         return (int)(BaseDamage * Crit * RandomMod);
     }
