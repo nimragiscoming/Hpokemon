@@ -17,7 +17,17 @@ public class CombatMoveButton : MonoBehaviour
     private void Start()
     {
         NameText.text = Move.MoveName;
-        PowerText.text = Move.Power.ToString() + "DP";
+
+        if(Move.MoveType == MoveType.Status)
+        {
+            PowerText.text = Move.StatusText;
+        }
+        else
+        {
+            PowerText.text = Move.Power.ToString() + "DP";
+        }
+
+
         TypeText.text = Move.Type.ToString();
         TypeText.color = MonsterTypes.GetTypeColour(Move.Type);
     }

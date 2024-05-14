@@ -18,9 +18,20 @@ public abstract class StatusEffect
 
 
     //im not going to do anything fancy here
-    public static StatusEffect FromString(string str)
+    public static StatusEffect FromString(string str, out float chance)
     {
-        switch (str)
+        string[]parts = str.Split('~');
+
+        if(parts.Length == 2)
+        {
+            chance= float.Parse(parts[1]);
+        }
+        else
+        {
+            chance = 1;
+        }
+
+        switch (parts[0])
         {
             case "Sleep":
                 return new SleepSE();

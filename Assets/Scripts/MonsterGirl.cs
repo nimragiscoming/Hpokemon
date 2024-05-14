@@ -8,6 +8,8 @@ public class MonsterGirl
 {
     public MGBase Monster;
 
+    public string Title = "Unnamed Monster";
+
     public int BaseHealth => Monster.BaseHealth;
 
     public int Health;

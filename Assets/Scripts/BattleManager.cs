@@ -52,12 +52,15 @@ public class BattleManager : MonoBehaviour
         foreach (MonsterGirl girl in Player.Girls)
         {
             girl.ResetStats();
+
+            girl.Title = "Your " + girl.Monster.MonsterName;
         }
 
         enemy.ResetStats();
 
+        enemy.Title = "Wild " + enemy.Monster.MonsterName;
 
-        SetDialogue("A " + enemy.Monster.MonsterName + " appears!");
+        SetDialogue("A " + enemy.Title + " appears!");
 
         CurEnemyMG = enemy;
 
@@ -138,6 +141,7 @@ public class BattleManager : MonoBehaviour
 
         foreach (CombatMove move in CurPlayerMG.Monster.Moveset)
         {
+            if(move.Cost > CurPlayerMG.Energy) { continue; }
             CombatMoveButton Mv = Instantiate(CombatMoveButton, CombatMoveButtonGroup.transform);
             Mv.BattleManager= this;
             Mv.Move= move;
@@ -168,38 +172,47 @@ public class BattleManager : MonoBehaviour
 
 
 
-        //do damage with chosen move
-        bool isCrit;
-        int Damage = CombatHelper.GetDamage(CurPlayerMG, CurEnemyMG, Move, out isCrit);
-
         SetDialogue("Using " + Move.MoveName + "...");
-
 
 
 
         //wait a few second before showing damage text, and going to the enemy turn
         yield return new WaitForSeconds(1f);
 
-        bool win = CombatHelper.DoDamage(CurEnemyMG, Damage);
 
-        UpdateStats();
-
-        string text1 = string.Empty;
-        if(isCrit)
+        bool win = false;
+        if(Move.MoveType != MoveType.Status)
         {
-            text1 += "Critical Hit! ";
+
+            //do damage with chosen move
+            bool isCrit;
+            int Damage = CombatHelper.GetDamage(CurPlayerMG, CurEnemyMG, Move, out isCrit);
+
+            win = CombatHelper.DoDamage(CurEnemyMG, Damage);
+
+            CurPlayerMG.Energy -= Move.Cost;
+
+            UpdateStats();
+
+            string text1 = string.Empty;
+            if(isCrit)
+            {
+                text1 += "Critical Hit! ";
+            }
+            text1 += CurPlayerMG.Title + " hit for " + Damage + " damage!";
+            SetDialogue(text1);
         }
-        text1 += "You hit for " + Damage + " damage!";
-        SetDialogue(text1);
+        else
+        {
+            SetDialogue(CurPlayerMG.Title + " used " + Move.MoveName);
+        }
+
+
+
 
         yield return new WaitForSeconds(1f);
 
-
-
-        if(Move.StatusEffects.Count > 0)
-        {
-            yield return AddEffects(Move, CurEnemyMG, CurEnemyMG.Monster.MonsterName);
-        }
+        yield return DoMoveArgs(CurPlayerMG,CurEnemyMG, Move);
 
 
 
@@ -219,7 +232,7 @@ public class BattleManager : MonoBehaviour
 
     IEnumerator EnemyTurn()
     {
-        SetDialogue("The " + CurEnemyMG.Monster.MonsterName + " is preparing to attack... ");
+        SetDialogue("The " + CurEnemyMG.Title + " is preparing to attack... ");
         yield return new WaitForSeconds(1f);
 
         SwitchCam(CurEnemyMG.Model.frontCam);
@@ -238,49 +251,76 @@ public class BattleManager : MonoBehaviour
         //Sort list by base damage
         List<CombatMove> moves = CurEnemyMG.Monster.Moveset.OrderByDescending(o => CombatHelper.CalcBaseDamage(CurEnemyMG, CurPlayerMG, o)).ToList();
 
+        List<CombatMove> moves1 = new List<CombatMove>();
+
+        foreach (CombatMove m in moves)
+        {
+            if(m.Cost < CurEnemyMG.Energy)
+            {
+                if(m.MoveType == MoveType.Status)
+                {
+                    moves1.Insert(Random.Range(1,moves1.Count), m);
+                }
+                else
+                {
+                    moves1.Add(m);
+                }
+
+            }
+
+        }
+
         //randomly select one based on select length
         int rand = Random.Range(0, selectLength);
 
-        CombatMove finalMove = moves[rand];
+        CombatMove finalMove = moves1[rand];
 
 
 
-        //actually do the damage
 
-        bool isCrit;
-        int Damage = CombatHelper.GetDamage(CurEnemyMG,CurPlayerMG, finalMove, out isCrit);
 
-        SetDialogue("The " + CurEnemyMG.Monster.MonsterName + " is using " + finalMove.MoveName + "...");
+        SetDialogue("The " + CurEnemyMG.Title + " is using " + finalMove.MoveName + "...");
 
 
 
 
         yield return new WaitForSeconds(1f);
 
-        bool win = CombatHelper.DoDamage(CurPlayerMG, Damage);
-
-        UpdateStats();
-
-        string text1 = string.Empty;
-        if (isCrit)
+        bool win = false;
+        if (finalMove.MoveType != MoveType.Status)
         {
-            text1 += "Critical Hit! ";
-        }
-        text1 += "The "+ CurEnemyMG.Monster.MonsterName + " hit for " + Damage + " damage!";
+            //actually do the damage
 
-        SetDialogue(text1);
+            bool isCrit;
+            int Damage = CombatHelper.GetDamage(CurEnemyMG,CurPlayerMG, finalMove, out isCrit);
+
+            win = CombatHelper.DoDamage(CurPlayerMG, Damage);
+
+            CurEnemyMG.Energy -= finalMove.Cost;
+
+            UpdateStats();
+
+            string text1 = string.Empty;
+            if (isCrit)
+            {
+                text1 += "Critical Hit! ";
+            }
+            text1 += "The "+ CurEnemyMG.Title + " hit for " + Damage + " damage!";
+
+            SetDialogue(text1);
+        }
+        else
+        {
+            SetDialogue("The "+ CurEnemyMG.Title + " used "+finalMove.MoveName);
+        }
+
+
 
         yield return new WaitForSeconds(1f);
 
+        yield return DoMoveArgs(CurEnemyMG,CurPlayerMG, finalMove);
 
 
-
-
-        if (finalMove.StatusEffects.Count > 0)
-        {
-            yield return AddEffects(finalMove, CurPlayerMG, "Your "+ CurPlayerMG.Monster.MonsterName);
-            
-        }
 
         //switch back to spinning wide cam
         SwitchCam(WideCam);
@@ -325,32 +365,19 @@ public class BattleManager : MonoBehaviour
         }
     }
 
-    IEnumerator AddEffects(CombatMove Move, MonsterGirl Target, string DialogueName)
+    IEnumerator DoMoveArgs(MonsterGirl source, MonsterGirl target, CombatMove move)
     {
-        foreach (string str in Move.StatusEffects)
+        foreach (string str in move.Args)
         {
-            StatusEffect effect = StatusEffect.FromString(str);
+            string dialogue = CombatHelper.ParseArg(source, target, str);
 
-            bool flag = false;
+            UpdateStats();
 
-            foreach (StatusEffect e in Target.StatusEffects)
+            if(dialogue != null)
             {
-                if (e.DisplayName == effect.DisplayName)
-                {
-                    flag = true;
-                    break;
-                }
+                SetDialogue(dialogue);
+                yield return new WaitForSeconds(1);
             }
-
-            if (flag == true) { continue; }
-
-            Target.StatusEffects.Add(effect);
-            effect.OnAdd(Target);
-
-            SetDialogue(DialogueName + " was given the " + effect.DisplayName + " effect!");
-
-            yield return new WaitForSeconds(1f);
-
         }
     }
 
@@ -374,13 +401,13 @@ public class BattleManager : MonoBehaviour
     void PlayerWin()
     {
         State = BattleState.Win;
-        SetDialogue("You have defeated the " + CurEnemyMG.Monster.MonsterName + ".");
+        SetDialogue("You have defeated the " + CurEnemyMG.Title + ".");
     }
 
     void PlayerLose()
     {
         State = BattleState.Lose;
-        SetDialogue("You have been defeated by the " + CurEnemyMG.Monster.MonsterName + ".");
+        SetDialogue("You have been defeated by the " + CurEnemyMG.Title + ".");
     }
 
 

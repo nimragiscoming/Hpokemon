@@ -11,9 +11,20 @@ public class CombatMove : ScriptableObject
 
     public int Cost;
 
-    public bool IsMagic = false;
+    public float Accuracy = 1;
+
+    public string StatusText;
+
+    public MoveType MoveType = MoveType.Physical;
 
     public MonsterType Type;
 
-    public List<string> StatusEffects = new List<string>();
+    public List<string> Args = new List<string>();
+}
+
+public enum MoveType
+{
+    Physical,
+    Magical,
+    Status
 }
