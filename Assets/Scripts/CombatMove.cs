@@ -28,3 +28,22 @@ public enum MoveType
     Magical,
     Status
 }
+
+public static class MoveTypes
+{
+    public static Color GetMoveTypeColour(MoveType type)
+    {
+        switch (type)
+        {
+            case MoveType.Physical:
+                return Color.white;
+            case MoveType.Magical:
+                return new Color32(200,200,255,255);
+            case MoveType.Status:
+                return new Color32(200, 255, 200, 255);
+
+            default:
+                return Color.white;
+        }
+    }
+}

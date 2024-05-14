@@ -12,10 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d8df872baafd77c4580e0194c5840f83, type: 3}
   m_Name: Unnerve
   m_EditorClassIdentifier: 
-  MoveName: 
+  MoveName: Unnerve
   Power: 0
-  Cost: 0
+  Cost: 10
   Accuracy: 1
-  IsMagic: 0
-  Type: 0
-  StatusEffects: []
+  StatusText: -1 MAtk
+  MoveType: 2
+  Type: 2
+  Args:
+  - Stage.MagicAttack~-1

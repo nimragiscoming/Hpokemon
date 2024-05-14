@@ -10,21 +10,21 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7216629c0249bbb44809288f2764a72a, type: 3}
-  m_Name: GloomySlime
+  m_Name: Preppy Slime
   m_EditorClassIdentifier: 
-  MonsterName: Gloomy Slime
-  BaseHealth: 950
+  MonsterName: Preppy Slime
+  BaseHealth: 1200
   BaseEnergy: 100
   Attack: 75
-  Defense: 75
-  MagicAttack: 120
-  MagicDefense: 95
+  Defense: 95
+  MagicAttack: 65
+  MagicDefense: 75
   Speed: 55
   Precision: 5
   Type: 0
   Moveset:
-  - {fileID: 11400000, guid: ba1d162fe99699e4b82ff69f43b44886, type: 2}
-  - {fileID: 11400000, guid: 7bb4e72a05fefcd4181b6efaeb298f0d, type: 2}
-  - {fileID: 11400000, guid: 735b5609b4fdf424eafcd2d212548fef, type: 2}
+  - {fileID: 11400000, guid: 0cf5599a5cd0b5e419f7c0023e834de8, type: 2}
+  - {fileID: 11400000, guid: c29a21de706800945905604868bb7d52, type: 2}
+  - {fileID: 11400000, guid: 500c32c2ccdef90488f1bea47ff8847d, type: 2}
   - {fileID: 11400000, guid: 577a1f26c54687f48aca209e008f584d, type: 2}
   Model: {fileID: 6794113042294689538, guid: 5a4df50269ef5354696a75aab466b3ff, type: 3}

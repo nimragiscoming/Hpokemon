@@ -12,11 +12,25 @@ public class MonsterGirl
 
     public int BaseHealth => Monster.BaseHealth;
 
-    public int Health;
+    private int health;
+
+    public int Health
+    {
+        get { return health;}
+
+        set { health = Math.Min(value, Monster.BaseHealth); }
+    }
 
     public int BaseEnergy => Monster.BaseEnergy;
 
-    public int Energy;
+    private int energy;
+
+    public int Energy
+    {
+        get { return energy; }
+
+        set { energy = Math.Min(value, Monster.BaseEnergy); }
+    }
 
 
     public int AtkStage;

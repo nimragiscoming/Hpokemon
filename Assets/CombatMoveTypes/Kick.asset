@@ -15,8 +15,10 @@ MonoBehaviour:
   MoveName: Kick
   Power: 20
   Cost: 0
-  IsMagic: 0
+  Accuracy: 1
+  StatusText: 
+  MoveType: 0
   Type: 1
-  StatusEffects:
-  - Bleed
-  - Dazzled
+  Args:
+  - Effect.Bleed~0.5
+  - Effect.Dazzled

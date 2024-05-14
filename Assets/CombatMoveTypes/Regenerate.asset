@@ -12,10 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d8df872baafd77c4580e0194c5840f83, type: 3}
   m_Name: Regenerate
   m_EditorClassIdentifier: 
-  MoveName: 
+  MoveName: Regenerate
   Power: 0
-  Cost: 0
+  Cost: 45
   Accuracy: 1
-  IsMagic: 0
+  StatusText: +1/2 Max Health
+  MoveType: 2
   Type: 0
-  Args: []
+  Args:
+  - Add.self.Health~BaseHealth*0.5

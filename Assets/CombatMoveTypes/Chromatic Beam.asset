@@ -10,14 +10,13 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d8df872baafd77c4580e0194c5840f83, type: 3}
-  m_Name: Somber Serenade
+  m_Name: Chromatic Beam
   m_EditorClassIdentifier: 
-  MoveName: Somber Serenade
-  Power: 85
+  MoveName: Chromatic Beam
+  Power: 65
   Cost: 15
   Accuracy: 1
   StatusText: 
   MoveType: 1
-  Type: 2
-  Args:
-  - Effect.Cursed~0.1
+  Type: 4
+  Args: []

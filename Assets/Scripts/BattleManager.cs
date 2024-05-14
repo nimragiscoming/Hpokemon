@@ -19,13 +19,12 @@ public class BattleManager : MonoBehaviour
 
     public MGBase type;
 
-    MonsterGirl CurPlayerMG;
+    public MonsterGirl CurPlayerMG;
 
-    MonsterGirl CurEnemyMG;
+    public MonsterGirl CurEnemyMG;
 
-    public CombatMoveButton CombatMoveButton;
 
-    public GameObject CombatMoveButtonGroup;
+    public ActionChoice ActionChoice;
 
     public Camera WideCam;
 
@@ -66,16 +65,22 @@ public class BattleManager : MonoBehaviour
 
         EnemyStats.Girl = CurEnemyMG;
 
-        CurPlayerMG = Player.Girls[0];
+
+        SwitchPlayerGirl(Player.Girls[0]);
+
+        StartCoroutine(BattleCycle());
+        //TODO: Initialise combat, make buttons etc
+    }
+
+    public void SwitchPlayerGirl(MonsterGirl Girl)
+    {
+        CurPlayerMG = Girl;
 
         PlayerStats.Girl = CurPlayerMG;
 
         CreateModels();
 
         UpdateStats();
-
-        StartCoroutine(BattleCycle());
-        //TODO: Initialise combat, make buttons etc
     }
 
     public void UpdateStats()
@@ -132,6 +137,8 @@ public class BattleManager : MonoBehaviour
 
 
             yield return UpdateStatusEffects();
+
+            RegenEnergyForAll();
         }
     }
 
@@ -139,13 +146,7 @@ public class BattleManager : MonoBehaviour
     {
         TurnNumber++;
 
-        foreach (CombatMove move in CurPlayerMG.Monster.Moveset)
-        {
-            if(move.Cost > CurPlayerMG.Energy) { continue; }
-            CombatMoveButton Mv = Instantiate(CombatMoveButton, CombatMoveButtonGroup.transform);
-            Mv.BattleManager= this;
-            Mv.Move= move;
-        }
+        ActionChoice.gameObject.SetActiveRecursively(true);
 
         State = BattleState.PlayerTurn;
     }
@@ -157,16 +158,13 @@ public class BattleManager : MonoBehaviour
 
 
     //called from clicking action button directly
-    public IEnumerator DoPlayerTurn(CombatMove Move)
+    public IEnumerator DoPlayerAttack(CombatMove Move)
     {
         if(State != BattleState.PlayerTurn) { yield break; }
 
 
+        ActionChoice.ClearBox();
 
-        foreach (Transform child in CombatMoveButtonGroup.transform)
-        {
-            Destroy(child.gameObject);
-        }
 
         SwitchCam(CurPlayerMG.Model.frontCam);
 
@@ -179,6 +177,8 @@ public class BattleManager : MonoBehaviour
         //wait a few second before showing damage text, and going to the enemy turn
         yield return new WaitForSeconds(1f);
 
+        CurPlayerMG.Energy -= Move.Cost;
+
 
         bool win = false;
         if(Move.MoveType != MoveType.Status)
@@ -190,7 +190,6 @@ public class BattleManager : MonoBehaviour
 
             win = CombatHelper.DoDamage(CurEnemyMG, Damage);
 
-            CurPlayerMG.Energy -= Move.Cost;
 
             UpdateStats();
 
@@ -226,6 +225,32 @@ public class BattleManager : MonoBehaviour
             PlayerWin();
             yield break;
         }
+
+        State = BattleState.EnemyTurn;
+    }
+
+    public IEnumerator DoPlayerSwitch(MonsterGirl girl)
+    {
+        if (State != BattleState.PlayerTurn) { yield break; }
+
+        SwitchCam(CurPlayerMG.Model.frontCam);
+
+        ActionChoice.ClearBox();
+
+
+        SetDialogue(CurPlayerMG.Title + " retreats.");
+
+        yield return new WaitForSeconds(1f);
+
+        SwitchPlayerGirl(girl);
+
+        SetDialogue("Go forth, " + CurPlayerMG.Title + "!");
+
+        yield return new WaitForSeconds(1f);
+
+
+        //switch back to spinning wide cam
+        SwitchCam(WideCam);
 
         State = BattleState.EnemyTurn;
     }
@@ -286,6 +311,8 @@ public class BattleManager : MonoBehaviour
 
         yield return new WaitForSeconds(1f);
 
+        CurEnemyMG.Energy -= finalMove.Cost;
+
         bool win = false;
         if (finalMove.MoveType != MoveType.Status)
         {
@@ -295,8 +322,6 @@ public class BattleManager : MonoBehaviour
             int Damage = CombatHelper.GetDamage(CurEnemyMG,CurPlayerMG, finalMove, out isCrit);
 
             win = CombatHelper.DoDamage(CurPlayerMG, Damage);
-
-            CurEnemyMG.Energy -= finalMove.Cost;
 
             UpdateStats();
 
@@ -362,6 +387,15 @@ public class BattleManager : MonoBehaviour
             {
                 SkipPlayerTurn = true;
             }
+        }
+    }
+
+    void RegenEnergyForAll()
+    {
+        foreach (MonsterGirl girl in Player.Girls)
+        {
+            if (girl == CurPlayerMG) { continue; }
+            girl.Energy += 20;
         }
     }
 

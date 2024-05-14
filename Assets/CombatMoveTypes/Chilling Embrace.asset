@@ -12,9 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d8df872baafd77c4580e0194c5840f83, type: 3}
   m_Name: Chilling Embrace
   m_EditorClassIdentifier: 
-  MoveName: 
-  Power: 0
-  Cost: 0
-  IsMagic: 0
+  MoveName: Chilling Embrace
+  Power: 70
+  Cost: 10
+  Accuracy: 1
+  StatusText: 
+  MoveType: 0
   Type: 0
-  StatusEffects: []
+  Args: []

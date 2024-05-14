@@ -287,6 +287,7 @@ MonoBehaviour:
   NameText: {fileID: 8740483615414408363}
   PowerText: {fileID: 7346435419485016761}
   TypeText: {fileID: 5782840258912849511}
+  Background: {fileID: 4180467440940072764}
 --- !u!1 &7643905361135797014
 GameObject:
   m_ObjectHideFlags: 0
