@@ -6,84 +6,38 @@ public static class MonsterTypes
 {
 
     //let the record show that is terrible, and im only writing it like this cause its a game jam
-    public static int GetTypeBonus(MonsterType T1, MonsterType T2)
+    public static float GetTypeEffect(MonsterType attackingType, MonsterType defendingType)
     {
-        if(T1 == MonsterType.Slime)
+        if (attackingType == defendingType) // types are always neutral against themselves
+            return 1.0f;
+
+        float result = 1.0f;
+
+        // check for resistances, if it isn't a resistance, it's a weakness
+        switch (attackingType)
         {
-            if(T2 == MonsterType.Enchanted || T2 == MonsterType.Space)
-            {
-                return -1;
-            }
+            case MonsterType.Slime:
+                result = defendingType == MonsterType.Enchanted || defendingType == MonsterType.Space ? 0.5f : 2.0f;
+                break;
 
-            if (T2 == MonsterType.Beast || T2 == MonsterType.Occult)
-            {
-                return 1;
-            }
+            case MonsterType.Beast:
+                result = defendingType == MonsterType.Slime || defendingType == MonsterType.Occult ? 0.5f : 2.0f;
+                break;
 
-            return 0;
+            case MonsterType.Occult:
+                result = defendingType == MonsterType.Slime || defendingType == MonsterType.Space ? 0.5f : 2.0f; 
+                break;
+
+            case MonsterType.Space:
+                result = defendingType == MonsterType.Beast || defendingType == MonsterType.Enchanted ? 0.5f : 2.0f; 
+                break;
+
+            case MonsterType.Enchanted:
+                result = defendingType == MonsterType.Beast || defendingType == MonsterType.Occult ? 0.5f : 2.0f;
+                break;
         }
 
-        if (T1 == MonsterType.Beast)
-        {
-            if (T2 == MonsterType.Slime || T2 == MonsterType.Occult)
-            {
-                return -1;
-            }
-
-            if (T2 == MonsterType.Space || T2 == MonsterType.Enchanted)
-            {
-                return 1;
-            }
-
-            return 0;
-        }
-
-        if (T1 == MonsterType.Occult)
-        {
-            if (T2 == MonsterType.Slime || T2 == MonsterType.Space)
-            {
-                return -1;
-            }
-
-            if (T2 == MonsterType.Beast || T2 == MonsterType.Enchanted)
-            {
-                return 1;
-            }
-
-            return 0;
-        }
-
-        if (T1 == MonsterType.Space)
-        {
-            if (T2 == MonsterType.Beast || T2 == MonsterType.Enchanted)
-            {
-                return -1;
-            }
-
-            if (T2 == MonsterType.Slime || T2 == MonsterType.Occult)
-            {
-                return 1;
-            }
-
-            return 0;
-        }
-
-        if (T1 == MonsterType.Enchanted)
-        {
-            if (T2 == MonsterType.Occult || T2 == MonsterType.Beast)
-            {
-                return -1;
-            }
-
-            if (T2 == MonsterType.Slime || T2 == MonsterType.Space)
-            {
-                return 1;
-            }
-
-            return 0;
-        }
-
-        return 0;
+        return result;
     }
 
     public static Color GetTypeColour(MonsterType Type)
