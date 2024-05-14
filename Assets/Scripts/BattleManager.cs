@@ -92,7 +92,7 @@ public class BattleManager : MonoBehaviour
     {
         while(true)
         {
-            //both skipplayerturn and skipenemyturn are bools set below in the updatestatuseffects area
+            //both skipplayerturn and skipenemyturn are bools set below in the updatestatuseffects function
             if (!SkipPlayerTurn)
             {
                 StartPlayerTurn();
@@ -157,6 +157,8 @@ public class BattleManager : MonoBehaviour
     {
         if(State != BattleState.PlayerTurn) { yield break; }
 
+
+
         foreach (Transform child in CombatMoveButtonGroup.transform)
         {
             Destroy(child.gameObject);
@@ -171,6 +173,9 @@ public class BattleManager : MonoBehaviour
         int Damage = CombatHelper.GetDamage(CurPlayerMG, CurEnemyMG, Move, out isCrit);
 
         SetDialogue("Using " + Move.MoveName + "...");
+
+
+
 
         //wait a few second before showing damage text, and going to the enemy turn
         yield return new WaitForSeconds(1f);
@@ -189,11 +194,16 @@ public class BattleManager : MonoBehaviour
 
         yield return new WaitForSeconds(1f);
 
+
+
         if(Move.StatusEffects.Count > 0)
         {
             yield return AddEffects(Move, CurEnemyMG, CurEnemyMG.Monster.MonsterName);
         }
 
+
+
+        //switch back to spinning wide cam
         SwitchCam(WideCam);
 
 
@@ -242,6 +252,9 @@ public class BattleManager : MonoBehaviour
 
         SetDialogue("The " + CurEnemyMG.Monster.MonsterName + " is using " + finalMove.MoveName + "...");
 
+
+
+
         yield return new WaitForSeconds(1f);
 
         bool win = CombatHelper.DoDamage(CurPlayerMG, Damage);
@@ -259,13 +272,17 @@ public class BattleManager : MonoBehaviour
 
         yield return new WaitForSeconds(1f);
 
+
+
+
+
         if (finalMove.StatusEffects.Count > 0)
         {
             yield return AddEffects(finalMove, CurPlayerMG, "Your "+ CurPlayerMG.Monster.MonsterName);
             
         }
 
-
+        //switch back to spinning wide cam
         SwitchCam(WideCam);
 
 
