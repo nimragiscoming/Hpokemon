@@ -92,20 +92,35 @@ public class BattleManager : MonoBehaviour
     {
         while(true)
         {
-
-            StartPlayerTurn();
-
-            while(State == BattleState.PlayerTurn)
+            //both skipplayerturn and skipenemyturn are bools set below in the updatestatuseffects area
+            if (!SkipPlayerTurn)
             {
-                yield return null;
+                StartPlayerTurn();
+
+                while(State == BattleState.PlayerTurn)
+                {
+                    yield return null;
+                }
+
+                EndPlayerTurn();
+            }
+            else
+            {
+                State = BattleState.EnemyTurn;
             }
 
-            EndPlayerTurn();
-
-            if(State == BattleState.EnemyTurn)
+            if (!SkipEnemyTurn)
             {
-                yield return EnemyTurn();
+                if(State == BattleState.EnemyTurn)
+                {
+                    yield return EnemyTurn();
+                }
             }
+            else
+            {
+                State = BattleState.PlayerTurn;
+            }
+
             
             if(State == BattleState.Win || State == BattleState.Lose)
             {
@@ -263,16 +278,33 @@ public class BattleManager : MonoBehaviour
 
     }
 
+
+    //not very elegant, but gets the job done
+
+    bool SkipPlayerTurn;
+
+    bool SkipEnemyTurn;
+
     IEnumerator UpdateStatusEffects()
     {
+        SkipPlayerTurn = false;
+        SkipEnemyTurn = false;
         foreach (StatusEffect item in CurEnemyMG.StatusEffects)
         {
             yield return item.PerTurn(this);
+            if(item.action == StatusAction.Skip)
+            {
+                SkipEnemyTurn = true;
+            }
         }
 
         foreach (StatusEffect item in CurPlayerMG.StatusEffects)
         {
             yield return item.PerTurn(this);
+            if (item.action == StatusAction.Skip)
+            {
+                SkipPlayerTurn = true;
+            }
         }
     }
 

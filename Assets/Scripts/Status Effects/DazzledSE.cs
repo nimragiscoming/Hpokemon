@@ -1,10 +1,13 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading;
 using UnityEngine;
 
 public class DazzledSE : StatusEffect
 {
     int TurnCounter;
+
+    MonsterGirl monster;
 
     public override StatMultiplier[] multipliers => new StatMultiplier[]
     {
@@ -15,6 +18,7 @@ public class DazzledSE : StatusEffect
     public override string DisplayName => "Dazzled";
     public override void OnAdd(MonsterGirl girl)
     {
+        monster = girl;
         TurnCounter = 0;
     }
 
@@ -25,6 +29,10 @@ public class DazzledSE : StatusEffect
         if(TurnCounter%4 == 0)
         {
             action = StatusAction.Skip;
+
+            bm.SetDialogue(monster.Monster.MonsterName + " was completely dazzled!");
+
+            yield return new WaitForSeconds(1);
         }
         else
         {
