@@ -1,19 +1,21 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using static Unity.VisualScripting.Member;
 
 public static class CombatHelper
 {
     public static int CalcBaseDamage(MonsterGirl Source, MonsterGirl Target, CombatMove Move)
     {
-        int AtkDfs;
+        float AtkDfs;
         if (Move.IsMagic)
         {
-            AtkDfs = Source.Monster.MagicAttack / Target.Monster.MagicDefense;
+
+            AtkDfs = ((Source.Monster.MagicAttack * GetStatEffectMultiplier(Source,Stat.MagicAttack)) / (Target.Monster.MagicDefense * GetStatEffectMultiplier(Target, Stat.MagicDefense)));
         }
         else
         {
-            AtkDfs = Source.Monster.Attack / Target.Monster.Defense;
+            AtkDfs = ((Source.Monster.Attack * GetStatEffectMultiplier(Source, Stat.Attack)) / (Target.Monster.Defense * GetStatEffectMultiplier(Target, Stat.Defense)));
         }
 
         float STAB = Source.Monster.Type == Move.Type ? 1.5f : 1;
@@ -41,8 +43,27 @@ public static class CombatHelper
 
         if (Random.Range(0, 100) < Source.Monster.Precision)
         {
-            Crit = 2;
-            isCrit = true;
+
+            //hacky way of disabling crits altogether for certain status effects
+            bool flag = false;
+            foreach (StatusEffect effect in Source.StatusEffects)
+            {
+                if(effect.action == StatusAction.NoCrits)
+                {
+                    flag= true;
+                    break;
+                }
+            }
+
+            if(!flag)
+            {
+                Crit = 2;
+                isCrit = true;
+            }
+            else
+            {
+                isCrit = false;
+            }
         }
         else
         {
@@ -52,6 +73,41 @@ public static class CombatHelper
         float RandomMod = Random.Range(0.9f, 1);
 
         return (int)(BaseDamage * Crit * RandomMod);
+    }
+
+    //returns true if monster died, false if not
+    public static bool DoDamage(MonsterGirl Target, int Damage)
+    {
+        Target.Health -= Damage;
+
+        if (Target.Health < 0)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+
+    }
+
+
+    public static float GetStatEffectMultiplier(MonsterGirl Target, Stat stat)
+    {
+        float total = 1;
+
+        foreach (StatusEffect effect in Target.StatusEffects)
+        {
+            foreach (StatMultiplier multiplier in effect.multipliers)
+            {
+                if (multiplier.stat == stat)
+                {
+                    total += multiplier.multiplier;
+                }
+            }
+        }
+
+        return total;
     }
 
     public static float GetStatStageMultiplier(int stage)
@@ -80,4 +136,6 @@ public static class CombatHelper
 
         }
     }
+
+
 }

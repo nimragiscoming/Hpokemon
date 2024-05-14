@@ -14,4 +14,6 @@ public class CombatMove : ScriptableObject
     public bool IsMagic = false;
 
     public MonsterType Type;
+
+    public List<string> StatusEffects = new List<string>();
 }

@@ -4,6 +4,7 @@ using System.Data;
 using System.Linq;
 using System.Linq.Expressions;
 using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class BattleManager : MonoBehaviour
@@ -70,11 +71,11 @@ public class BattleManager : MonoBehaviour
 
         UpdateStats();
 
-        StartPlayerTurn();
+        StartCoroutine(BattleCycle());
         //TODO: Initialise combat, make buttons etc
     }
 
-    void UpdateStats()
+    public void UpdateStats()
     {
         PlayerStats.UpdateText();
         EnemyStats.UpdateText();
@@ -85,6 +86,35 @@ public class BattleManager : MonoBehaviour
         cam.enabled = true;
         curCam.enabled = false;
         curCam = cam;
+    }
+
+    public IEnumerator BattleCycle()
+    {
+        while(true)
+        {
+
+            StartPlayerTurn();
+
+            while(State == BattleState.PlayerTurn)
+            {
+                yield return null;
+            }
+
+            EndPlayerTurn();
+
+            if(State == BattleState.EnemyTurn)
+            {
+                yield return EnemyTurn();
+            }
+            
+            if(State == BattleState.Win || State == BattleState.Lose)
+            {
+                yield break;
+            }
+
+
+            yield return UpdateStatusEffects();
+        }
     }
 
     public void StartPlayerTurn()
@@ -103,12 +133,11 @@ public class BattleManager : MonoBehaviour
 
     public void EndPlayerTurn()
     {
-
-        State = BattleState.EnemyTurn;
-
-        StartCoroutine(EnemyTurn());
+        //redundant for now, but potentially useful in future
     }
 
+
+    //called from clicking action button directly
     public IEnumerator DoPlayerTurn(CombatMove Move)
     {
         if(State != BattleState.PlayerTurn) { yield break; }
@@ -131,7 +160,7 @@ public class BattleManager : MonoBehaviour
         //wait a few second before showing damage text, and going to the enemy turn
         yield return new WaitForSeconds(1f);
 
-        bool win = DoDamage(CurEnemyMG, Damage);
+        bool win = CombatHelper.DoDamage(CurEnemyMG, Damage);
 
         UpdateStats();
 
@@ -145,7 +174,10 @@ public class BattleManager : MonoBehaviour
 
         yield return new WaitForSeconds(1f);
 
-
+        if(Move.StatusEffects.Count > 0)
+        {
+            yield return AddEffects(Move, CurEnemyMG, CurEnemyMG.Monster.MonsterName);
+        }
 
         SwitchCam(WideCam);
 
@@ -157,7 +189,7 @@ public class BattleManager : MonoBehaviour
             yield break;
         }
 
-        EndPlayerTurn();
+        State = BattleState.EnemyTurn;
     }
 
     IEnumerator EnemyTurn()
@@ -197,7 +229,7 @@ public class BattleManager : MonoBehaviour
 
         yield return new WaitForSeconds(1f);
 
-        bool win = DoDamage(CurPlayerMG, Damage);
+        bool win = CombatHelper.DoDamage(CurPlayerMG, Damage);
 
         UpdateStats();
 
@@ -212,7 +244,11 @@ public class BattleManager : MonoBehaviour
 
         yield return new WaitForSeconds(1f);
 
-
+        if (finalMove.StatusEffects.Count > 0)
+        {
+            yield return AddEffects(finalMove, CurPlayerMG, "Your "+ CurPlayerMG.Monster.MonsterName);
+            
+        }
 
 
         SwitchCam(WideCam);
@@ -225,8 +261,48 @@ public class BattleManager : MonoBehaviour
             yield break;
         }
 
-        //end turn
-        StartPlayerTurn();
+    }
+
+    IEnumerator UpdateStatusEffects()
+    {
+        foreach (StatusEffect item in CurEnemyMG.StatusEffects)
+        {
+            yield return item.PerTurn(this);
+        }
+
+        foreach (StatusEffect item in CurPlayerMG.StatusEffects)
+        {
+            yield return item.PerTurn(this);
+        }
+    }
+
+    IEnumerator AddEffects(CombatMove Move, MonsterGirl Target, string DialogueName)
+    {
+        foreach (string str in Move.StatusEffects)
+        {
+            StatusEffect effect = StatusEffect.FromString(str);
+
+            bool flag = false;
+
+            foreach (StatusEffect e in Target.StatusEffects)
+            {
+                if (e.DisplayName == effect.DisplayName)
+                {
+                    flag = true;
+                    break;
+                }
+            }
+
+            if (flag == true) { continue; }
+
+            Target.StatusEffects.Add(effect);
+            effect.OnAdd(Target);
+
+            SetDialogue(DialogueName + " was given the " + effect.DisplayName + " effect!");
+
+            yield return new WaitForSeconds(1f);
+
+        }
     }
 
     public void SetDialogue(string text)
@@ -244,22 +320,6 @@ public class BattleManager : MonoBehaviour
                 yield return new WaitForSeconds(interval);
             }
         }
-    }
-
-    //returns true if monster died, false if not
-    public bool DoDamage(MonsterGirl Target, int Damage)
-    {
-        Target.Health -= Damage;
-
-        if(Target.Health < 0)
-        {
-            return true;
-        }
-        else
-        {
-            return false;
-        }
-
     }
 
     void PlayerWin()

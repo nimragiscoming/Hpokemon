@@ -14,5 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   MoveName: Kick
   Power: 20
+  Cost: 0
   IsMagic: 0
   Type: 1
+  StatusEffects:
+  - Bleed
+  - Dazzled

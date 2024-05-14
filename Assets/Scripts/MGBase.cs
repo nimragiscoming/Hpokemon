@@ -29,3 +29,15 @@ public class MGBase : ScriptableObject
 
     public MonsterModel Model;
 }
+
+public enum Stat
+{
+    BaseHealth,
+    BaseEnergy,
+    Attack,
+    Defense,
+    MagicAttack,
+    MagicDefense,
+    Speed,
+    Precision
+}

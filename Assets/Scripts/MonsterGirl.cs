@@ -29,6 +29,8 @@ public class MonsterGirl
 
     public MonsterModel Model;
 
+    public List<StatusEffect> StatusEffects = new List<StatusEffect>();
+
     public void ResetStats()
     {
         Health = BaseHealth;
@@ -40,6 +42,8 @@ public class MonsterGirl
         MAtkStage = 0;
         MDfsStage = 0;
         SpdStage = 0;
+
+        StatusEffects.Clear();
     }
 
 }

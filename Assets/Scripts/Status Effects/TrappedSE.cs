@@ -2,17 +2,17 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class TrappedSE : MonoBehaviour
+public class TrappedSE : StatusEffect
 {
-    // Start is called before the first frame update
-    void Start()
+    public override StatusAction action => StatusAction.Trap;
+
+    public override string DisplayName => "Trapped";
+    public override void OnAdd(MonsterGirl girl)
     {
-        
     }
 
-    // Update is called once per frame
-    void Update()
+    public override IEnumerator PerTurn(BattleManager bm)
     {
-        
+        yield break;
     }
 }
