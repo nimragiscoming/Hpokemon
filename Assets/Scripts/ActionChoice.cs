@@ -36,6 +36,13 @@ public class ActionChoice : MonoBehaviour
         CloseMenu();
     }
 
+    public void Rest()
+    {
+        BM.StartCoroutine(BM.DoPlayerRest());
+
+        CloseMenu();
+    }
+
     public void CreateSwitchChoices()
     {
         foreach (MonsterGirl girl in BM.Player.Girls)

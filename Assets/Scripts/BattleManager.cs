@@ -146,7 +146,7 @@ public class BattleManager : MonoBehaviour
     {
         TurnNumber++;
 
-        ActionChoice.gameObject.SetActiveRecursively(true);
+        ActionChoice.gameObject.SetActive(true);
 
         State = BattleState.PlayerTurn;
     }
@@ -200,16 +200,14 @@ public class BattleManager : MonoBehaviour
             }
             text1 += CurPlayerMG.Title + " hit for " + Damage + " damage!";
             SetDialogue(text1);
-        }
-        else
-        {
-            SetDialogue(CurPlayerMG.Title + " used " + Move.MoveName);
+
+            yield return new WaitForSeconds(1f);
         }
 
 
 
 
-        yield return new WaitForSeconds(1f);
+
 
         yield return DoMoveArgs(CurPlayerMG,CurEnemyMG, Move);
 
@@ -255,36 +253,71 @@ public class BattleManager : MonoBehaviour
         State = BattleState.EnemyTurn;
     }
 
-    IEnumerator EnemyTurn()
+    public IEnumerator DoPlayerRest()
     {
-        SetDialogue("The " + CurEnemyMG.Title + " is preparing to attack... ");
+        if (State != BattleState.PlayerTurn) { yield break; }
+
+        SwitchCam(CurPlayerMG.Model.frontCam);
+
+        ActionChoice.ClearBox();
+
+
+        SetDialogue(CurPlayerMG.Title + " rests.");
+
         yield return new WaitForSeconds(1f);
 
-        SwitchCam(CurEnemyMG.Model.frontCam);
+        CurPlayerMG.Energy += 20;
+
+        UpdateStats();
+
+        SetDialogue(CurPlayerMG.Title + " recovers 20 energy!");
+
+        yield return new WaitForSeconds(1f);
 
 
+        //switch back to spinning wide cam
+        SwitchCam(WideCam);
 
+        State = BattleState.EnemyTurn;
+    }
+
+    IEnumerator EnemyTurn()
+    {
         //TODO: change monstergirl when she gets to 20% health
 
 
+        //Get all valid moves
+        List<CombatMove> moves = GetValidEnemyMoves();
 
 
-        //Selects random move out of X best
+        //try and attack above all else
+        if (moves.Count > 0)
+        {
+            yield return DoEnemyAttack(moves);
+            yield break;
+        }
 
-        int selectLength = Mathf.Min(2, CurEnemyMG.Monster.Moveset.Count);
+        //then try and switch
 
-        //Sort list by base damage
+        //then try and rest
+
+        yield return DoEnemyRest();
+
+    }
+
+    List<CombatMove> GetValidEnemyMoves()
+    {
         List<CombatMove> moves = CurEnemyMG.Monster.Moveset.OrderByDescending(o => CombatHelper.CalcBaseDamage(CurEnemyMG, CurPlayerMG, o)).ToList();
 
         List<CombatMove> moves1 = new List<CombatMove>();
 
         foreach (CombatMove m in moves)
         {
-            if(m.Cost < CurEnemyMG.Energy)
+            if (m.Cost < CurEnemyMG.Energy)
             {
-                if(m.MoveType == MoveType.Status)
+                if (m.MoveType == MoveType.Status)
                 {
-                    moves1.Insert(Random.Range(1,moves1.Count), m);
+                    moves1.Insert(Random.Range(1, moves1.Count), m);
                 }
                 else
                 {
@@ -295,18 +328,27 @@ public class BattleManager : MonoBehaviour
 
         }
 
+        return moves1;
+    }
+
+    public IEnumerator DoEnemyAttack(List<CombatMove> moves)
+    {
+        SetDialogue("The " + CurEnemyMG.Title + " is preparing to attack... ");
+        yield return new WaitForSeconds(1f);
+
+        SwitchCam(CurEnemyMG.Model.frontCam);
+
+        //Selects random move out of X best
+
+        int selectLength = Mathf.Min(2, CurEnemyMG.Monster.Moveset.Count);
+
         //randomly select one based on select length
         int rand = Random.Range(0, selectLength);
 
-        CombatMove finalMove = moves1[rand];
-
-
-
+        CombatMove finalMove = moves[rand];
 
 
         SetDialogue("The " + CurEnemyMG.Title + " is using " + finalMove.MoveName + "...");
-
-
 
 
         yield return new WaitForSeconds(1f);
@@ -319,7 +361,7 @@ public class BattleManager : MonoBehaviour
             //actually do the damage
 
             bool isCrit;
-            int Damage = CombatHelper.GetDamage(CurEnemyMG,CurPlayerMG, finalMove, out isCrit);
+            int Damage = CombatHelper.GetDamage(CurEnemyMG, CurPlayerMG, finalMove, out isCrit);
 
             win = CombatHelper.DoDamage(CurPlayerMG, Damage);
 
@@ -330,20 +372,18 @@ public class BattleManager : MonoBehaviour
             {
                 text1 += "Critical Hit! ";
             }
-            text1 += "The "+ CurEnemyMG.Title + " hit for " + Damage + " damage!";
+            text1 += "The " + CurEnemyMG.Title + " hit for " + Damage + " damage!";
 
             SetDialogue(text1);
-        }
-        else
-        {
-            SetDialogue("The "+ CurEnemyMG.Title + " used "+finalMove.MoveName);
+
+            yield return new WaitForSeconds(1f);
         }
 
 
 
-        yield return new WaitForSeconds(1f);
 
-        yield return DoMoveArgs(CurEnemyMG,CurPlayerMG, finalMove);
+
+        yield return DoMoveArgs(CurEnemyMG, CurPlayerMG, finalMove);
 
 
 
@@ -357,7 +397,31 @@ public class BattleManager : MonoBehaviour
             PlayerLose();
             yield break;
         }
+    }
 
+    public IEnumerator DoEnemyRest()
+    {
+
+        SwitchCam(CurEnemyMG.Model.frontCam);
+
+        ActionChoice.ClearBox();
+
+
+        SetDialogue(CurEnemyMG.Title + " rests.");
+
+        yield return new WaitForSeconds(1f);
+
+        CurEnemyMG.Energy += 20;
+
+        UpdateStats();
+
+        SetDialogue(CurEnemyMG.Title + " recovers 20 energy!");
+
+        yield return new WaitForSeconds(1f);
+
+
+        //switch back to spinning wide cam
+        SwitchCam(WideCam);
     }
 
 
