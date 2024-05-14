@@ -23,11 +23,11 @@ public class StatDisplayPanel : MonoBehaviour
 
         StringBuilder sb = new StringBuilder();
 
-        sb.AppendLine("Atk: "+Girl.Monster.Attack);
-        sb.AppendLine("Dfs: " + Girl.Monster.Defense);
-        sb.AppendLine("mAtk: " + Girl.Monster.MagicAttack);
-        sb.AppendLine("mDfs: " + Girl.Monster.MagicDefense);
-        sb.AppendLine("Spd: " + Girl.Monster.Speed);
+        sb.AppendLine("Atk: "+Girl.Monster.Attack + " ("+ CombatHelper.GetStatStageMultiplier(Girl.AtkStage)+")");
+        sb.AppendLine("Dfs: " + Girl.Monster.Defense + " (" + CombatHelper.GetStatStageMultiplier(Girl.DfsStage) + ")");
+        sb.AppendLine("mAtk: " + Girl.Monster.MagicAttack + " (" + CombatHelper.GetStatStageMultiplier(Girl.MAtkStage) + ")");
+        sb.AppendLine("mDfs: " + Girl.Monster.MagicDefense + " (" + CombatHelper.GetStatStageMultiplier(Girl.MDfsStage) + ")");
+        sb.AppendLine("Spd: " + Girl.Monster.Speed + " (" + CombatHelper.GetStatStageMultiplier(Girl.SpdStage) + ")");
         sb.AppendLine("Psn: " + Girl.Monster.Precision);
         sb.AppendLine();
         sb.AppendLine("Type: " + Girl.Monster.Type.ToString());
