@@ -201,6 +201,8 @@ public class BattleManager : MonoBehaviour
             text1 += CurPlayerMG.Title + " hit for " + Damage + " damage!";
             SetDialogue(text1);
 
+            yield return CurPlayerMG.Model.DoAttackAnim();
+
             yield return new WaitForSeconds(1f);
         }
 
@@ -376,6 +378,8 @@ public class BattleManager : MonoBehaviour
 
             SetDialogue(text1);
 
+            yield return CurEnemyMG.Model.DoAttackAnim();
+
             yield return new WaitForSeconds(1f);
         }
 
@@ -517,9 +521,9 @@ public class BattleManager : MonoBehaviour
 
         Vector3 EnemyPos = transform.position + new Vector3(dist / 2, 0);
 
-        CurPlayerMG.Model = Instantiate(CurPlayerMG.Monster.Model, PlayerPos, Quaternion.identity);
+        CurPlayerMG.Model = Instantiate(CurPlayerMG.Monster.Model, PlayerPos + CurPlayerMG.Monster.Model.transform.position, CurPlayerMG.Monster.Model.transform.rotation);
 
-        CurEnemyMG.Model = Instantiate(CurEnemyMG.Monster.Model, EnemyPos, Quaternion.identity);
+        CurEnemyMG.Model = Instantiate(CurEnemyMG.Monster.Model, EnemyPos + CurEnemyMG.Monster.Model.transform.position, CurEnemyMG.Monster.Model.transform.rotation);
     }
 }
 

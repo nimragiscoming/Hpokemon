@@ -231,7 +231,6 @@ public static class CombatHelper
 
     public static string ParseAddValue(MonsterGirl target, string str)
     {
-        Debug.Log(str);
 
         string[] parts = str.Split("~");
 
